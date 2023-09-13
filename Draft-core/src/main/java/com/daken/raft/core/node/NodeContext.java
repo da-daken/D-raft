@@ -1,5 +1,6 @@
 package com.daken.raft.core.node;
 
+import com.daken.raft.core.node.config.NodeConfig;
 import com.google.common.eventbus.EventBus;
 import com.daken.raft.core.log.Log;
 import com.daken.raft.core.node.store.NodeStore;
@@ -50,6 +51,10 @@ public class NodeContext {
      * 角色状态存储
      */
     private NodeStore store;
+    /**
+     * 配置信息
+     */
+    private NodeConfig config;
 
     private EventBus eventBus;
 

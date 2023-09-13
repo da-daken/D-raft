@@ -1,5 +1,7 @@
 package com.daken.raft.core.node;
 
+import com.daken.raft.core.log.Log;
+import com.daken.raft.core.log.MemoryLog;
 import com.google.common.eventbus.EventBus;
 import com.daken.raft.core.node.config.NodeConfig;
 import com.daken.raft.core.node.store.MemoryNodeStore;
@@ -24,6 +26,7 @@ public class NodeBuilder {
     private Scheduler scheduler;
     private Connector connector;
     private TaskExecutor taskExecutor;
+    private Log log;
 
     public NodeBuilder(NodeEndpoint endpoint) {
         this(Collections.singletonList(endpoint), endpoint.getId());
@@ -50,6 +53,11 @@ public class NodeBuilder {
         return this;
     }
 
+    public NodeBuilder setLog(Log log) {
+        this.log = log;
+        return this;
+    }
+
     public Node build() {
         return new NodeImpl(buildContext());
     }
@@ -62,6 +70,7 @@ public class NodeBuilder {
         nodeContext.setScheduler(scheduler == null ? new DefaultScheduler(config) : scheduler);
         nodeContext.setTaskExecutor(taskExecutor == null ? new SingleThreadTaskExecutor("node") : taskExecutor);
         nodeContext.setEventBus(eventBus);
+        nodeContext.setLog(log == null ? new MemoryLog() : log);
         nodeContext.setStore(new MemoryNodeStore());
         return nodeContext;
     }
