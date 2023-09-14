@@ -201,27 +201,27 @@ public class NodeImpl implements Node {
 
         // 请求的任期小于自己的,返回自己的任期
         if (role.getTerm() > rpc.getTerm()) {
-            return new AppendEntriesResult(role.getTerm(), false);
+            return new AppendEntriesResult(rpc.getMessageId() ,role.getTerm(), false);
         }
 
         // 请求的任期大于自己的，变为 Follower，并追加日志
         if (role.getTerm() < rpc.getTerm()) {
             becomeFollower(rpc.getTerm(), null, rpc.getLeaderId(), true);
-            return new AppendEntriesResult(rpc.getTerm(), appendEntries(rpc));
+            return new AppendEntriesResult(rpc.getMessageId(), rpc.getTerm(), appendEntries(rpc));
         }
 
         switch (role.getRoleName()) {
             case FOLLOWER:
                 // 重置保存在本地的状态，重置选举超时计时器，并添加日志
                 becomeFollower(role.getTerm(), ((FollowerNodeRole) role).getVotedFor(), rpc.getLeaderId(), true);
-                return new AppendEntriesResult(role.getTerm(), appendEntries(rpc));
+                return new AppendEntriesResult(rpc.getMessageId(), role.getTerm(), appendEntries(rpc));
             case CANDIDATE:
                 // 说明已经选出了 leader 了，退化为 Follower，并添加日志
                 becomeFollower(role.getTerm(), null, rpc.getLeaderId(), true);
-                return new AppendEntriesResult(role.getTerm(), appendEntries(rpc));
+                return new AppendEntriesResult(rpc.getMessageId(), role.getTerm(), appendEntries(rpc));
             case LEADER:
                 log.warn("receive append entries rpc from another leader {}, ignore", rpc.getLeaderId());
-                return new AppendEntriesResult(rpc.getTerm(), false);
+                return new AppendEntriesResult(rpc.getMessageId(), rpc.getTerm(), false);
             default:
                 throw new IllegalStateException("unexpected node role [" + role.getRoleName() + "]");
         }

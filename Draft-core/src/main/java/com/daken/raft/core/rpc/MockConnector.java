@@ -34,6 +34,11 @@ public class MockConnector implements Connector {
     }
 
     @Override
+    public void resetChannels() {
+
+    }
+
+    @Override
     public void sendRequestVote(@Nonnull RequestVoteRpc rpc, @Nonnull Collection<NodeEndpoint> destinationEndpoints) {
         Message message = new Message();
         message.setRpc(rpc);

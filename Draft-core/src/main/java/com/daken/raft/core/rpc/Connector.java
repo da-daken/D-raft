@@ -15,6 +15,8 @@ public interface Connector {
 
     void close();
 
+    void resetChannels();
+
     void sendRequestVote(@Nonnull RequestVoteRpc rpc, @Nonnull Collection<NodeEndpoint> destinationEndpoints);
 
     void replyRequestVote(@Nonnull RequestVoteResult result, @Nonnull NodeEndpoint destinationEndpoint);

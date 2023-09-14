@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * AbstractLog
@@ -50,6 +51,8 @@ public abstract class AbstractLog implements Log {
         }
 
         AppendEntriesRpc rpc = new AppendEntriesRpc();
+        // TODO messageId 返回方可能乱序回复，生成UUID让回复方丢弃编号乱序的结果，然后依靠raft的重传保证后续处理的正确性
+        rpc.setMessageId(UUID.randomUUID().toString());
         rpc.setTerm(term);
         rpc.setLeaderId(selfId);
         rpc.setLeaderCommit(commitIndex);
