@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.FutureTask;
 
 /**
- * OutboundChannelGroup
+ * OutboundChannelGroup 出口连接，根据 nodeId 查找对应连接
  */
 @Slf4j
 public class OutboundChannelGroup {
@@ -38,6 +38,7 @@ public class OutboundChannelGroup {
     }
 
     /**
+     * 建立/获取 当前 node 对被发送方 node 的连接
      * 惰性连接方法，若这个节点的连接存在，则用，不存在则创建一个连接
      * @param nodeId
      * @param address

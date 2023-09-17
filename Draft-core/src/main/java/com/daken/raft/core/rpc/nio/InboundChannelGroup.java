@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
- * InboundChannelGroup
+ * InboundChannelGroup 入口连接，记录其他连接点，在当前 node 变成 leader 后重置所有入口连接（即关闭所有入口连接）
  */
 @Slf4j
 public class InboundChannelGroup {

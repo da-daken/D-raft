@@ -5,6 +5,8 @@ import com.daken.raft.core.log.entry.EntryMeta;
 import com.daken.raft.core.log.entry.GeneralEntry;
 import com.daken.raft.core.log.entry.NoOpEntry;
 import com.daken.raft.core.log.sequence.EntrySequence;
+import com.daken.raft.core.log.statemachine.StateMachine;
+import com.daken.raft.core.log.statemachine.StateMachineContext;
 import com.daken.raft.core.node.NodeId;
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
 import lombok.Getter;
@@ -24,6 +26,11 @@ public abstract class AbstractLog implements Log {
     protected EntrySequence entrySequence;
 
     protected int commitIndex;
+
+    protected StateMachine stateMachine;
+
+    private final StateMachineContext stateMachineContext = new StateMachineContextImpl();
+
 
     @Override
     public int getNextIndex() {
@@ -258,5 +265,11 @@ public abstract class AbstractLog implements Log {
         public Iterator<Entry> iterator() {
             return entries.iterator();
         }
+    }
+
+    private class StateMachineContextImpl implements StateMachineContext {
+
+        // TODO 快照
+
     }
 }

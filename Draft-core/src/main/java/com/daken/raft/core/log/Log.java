@@ -4,6 +4,7 @@ import com.daken.raft.core.log.entry.Entry;
 import com.daken.raft.core.log.entry.EntryMeta;
 import com.daken.raft.core.log.entry.GeneralEntry;
 import com.daken.raft.core.log.entry.NoOpEntry;
+import com.daken.raft.core.log.statemachine.StateMachine;
 import com.daken.raft.core.node.NodeId;
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
 
@@ -64,7 +65,7 @@ public interface Log {
     /**
      * 设置状态机
      */
-    // void setStateMachine(StateMachine stateMachine);
+     void setStateMachine(StateMachine stateMachine);
 
     /**
      * 关闭

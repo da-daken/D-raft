@@ -106,6 +106,15 @@ public class NodeGroup {
         return member;
     }
 
+    boolean isStandalone() {
+        return memberMap.size() == 1 && memberMap.containsKey(selfId);
+    }
+
+    public GroupMember findSelf() {
+        return memberMap.get(selfId);
+    }
+
+
     @Nullable
     GroupMember getMember(NodeId id) {
         return memberMap.get(id);

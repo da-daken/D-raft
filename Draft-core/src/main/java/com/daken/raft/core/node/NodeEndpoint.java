@@ -16,4 +16,8 @@ public class NodeEndpoint {
         this.id = NodeId.of(id);
         this.address = new Address(host, port);
     }
+
+    public int getPort() {
+        return address.getPort();
+    }
 }

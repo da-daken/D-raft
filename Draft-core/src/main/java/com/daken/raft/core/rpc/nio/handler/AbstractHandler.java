@@ -19,7 +19,7 @@ import java.util.Objects;
  * AbstractHandler
  */
 @Slf4j
-public class AbstractHandler extends ChannelDuplexHandler {
+public abstract class AbstractHandler extends ChannelDuplexHandler {
 
     /**
      * 使用 EventBus 解决核心组件和 RPC 组件之间的双向依赖问题，把收到的消息转发给订阅者

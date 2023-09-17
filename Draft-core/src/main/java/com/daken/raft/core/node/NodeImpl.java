@@ -1,6 +1,7 @@
 package com.daken.raft.core.node;
 
 import com.daken.raft.core.log.entry.EntryMeta;
+import com.daken.raft.core.log.statemachine.StateMachine;
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
 import com.daken.raft.core.rpc.message.req.RequestVoteRpc;
 import com.daken.raft.core.rpc.message.resp.AppendEntriesResult;
@@ -14,6 +15,7 @@ import com.daken.raft.core.schedule.LogReplicationTask;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.annotation.Nonnull;
 import java.util.Objects;
 
 /**
@@ -54,6 +56,39 @@ public class NodeImpl implements Node {
         started = true;
     }
 
+    @Override
+    public void registerStateMachine(@Nonnull StateMachine stateMachine) {
+        Objects.requireNonNull(stateMachine);
+        context.getLog().setStateMachine(stateMachine);
+    }
+
+    @Override
+    public void appendLog(@Nonnull byte[] commandBytes) {
+        Objects.requireNonNull(commandBytes);
+        ensureLeader();
+        context.getTaskExecutor().submit(() -> {
+            context.getLog().appendEntry(role.getTerm(), commandBytes);
+            doReplicateLog();
+        });
+    }
+
+    @Override
+    public RoleNameAndLeaderId getRoleNameAndLeaderId() {
+        return role.getNameAndLeaderId(context.getSelfId());
+    }
+
+    /**
+     * 判断是否是 leader
+     */
+    private void ensureLeader() {
+        RoleNameAndLeaderId result = role.getNameAndLeaderId(context.getSelfId());
+        if (result.getRoleName() == RoleName.LEADER) {
+            return;
+        }
+        NodeEndpoint endpoint = result.getLeaderId() != null ? context.getGroup().findMember(result.getLeaderId()).getEndpoint() : null;
+        throw new NotLeaderException(result.getRoleName(), endpoint);
+    }
+
     private ElectionTimeout scheduleElectionTimeout() {
         return context.getScheduler().scheduleElectionTimeout(this::electionTimeout);
     }
@@ -68,7 +103,7 @@ public class NodeImpl implements Node {
     }
 
     /**
-     * 选举超时
+     * 选举超时 send voteRpc
      * 如果是 Follower ：变为 Candidate 发起投票
      * 如果是 Candidate ：重新发起投票
      */
@@ -233,8 +268,7 @@ public class NodeImpl implements Node {
         boolean result = context.getLog().appendEntriesFromLeader(rpc.getPrevLogIndex(), rpc.getPrevLogTerm(), rpc.getEntries());
         // 追加成功，根据leader的commitIndex判断是否推进自己的commitIndex
         if (result) {
-            // 如果 leaderCommit > commitIndex， 设置本地 commitIndex 为 leaderCommit 和最新日志索引中 较小的一个
-            // todo 没懂
+            // 如果 leaderCommit > commitIndex， 设置本地 commitIndex 为 leaderCommit 和最新日志索引中(可能当前日志进度比 leader 慢) 较小的一个
             context.getLog().advanceCommitIndex(Math.min(rpc.getLeaderCommit(), rpc.getLastEntryIndex()), rpc.getTerm());
         }
         return result;
@@ -384,6 +418,11 @@ public class NodeImpl implements Node {
     }
 
 
+    /**
+     * send appendEntriesRpc
+     * @param member
+     * @param maxEntries
+     */
     private void doReplicateLog(GroupMember member, int maxEntries) {
         AppendEntriesRpc appendEntriesRpc = context.getLog()
                 .createAppendEntriesRpc(role.getTerm(), context.getSelfId(), member.getNextIndex(), maxEntries);

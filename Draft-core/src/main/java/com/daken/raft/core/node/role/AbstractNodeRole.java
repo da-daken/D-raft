@@ -27,4 +27,8 @@ public abstract class AbstractNodeRole {
 
 
     public abstract NodeId getLeaderId(NodeId selfId);
+
+    public RoleNameAndLeaderId getNameAndLeaderId(NodeId selfId) {
+        return new RoleNameAndLeaderId(roleName, getLeaderId(selfId));
+    }
 }
