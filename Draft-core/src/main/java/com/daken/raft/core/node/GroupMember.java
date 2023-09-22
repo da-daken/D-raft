@@ -15,8 +15,7 @@ public class GroupMember {
     private ReplicatingState replicatingState;
 
     public GroupMember(NodeEndpoint endpoint) {
-        Objects.requireNonNull(endpoint);
-        this.endpoint = endpoint;
+        this(endpoint, null);
     }
 
     public GroupMember(NodeEndpoint endpoint, ReplicatingState replicatingState) {
@@ -61,5 +60,45 @@ public class GroupMember {
 
     public boolean backOfNextIndex() {
         return ensureReplicatingState().backOffNextIndex();
+    }
+
+    // =================  快照相关 ==================
+
+    void replicateNow() {
+        replicateAt(System.currentTimeMillis());
+    }
+
+    void replicateAt(long replicatedAt) {
+        ReplicatingState replicatingState = ensureReplicatingState();
+        replicatingState.setReplicating(true);
+        replicatingState.setLastReplicatedAt(replicatedAt);
+    }
+
+    boolean isReplicating() {
+        return ensureReplicatingState().isReplicating();
+    }
+
+    void stopReplicating() {
+        ensureReplicatingState().setReplicating(false);
+    }
+
+    /**
+     * Test if should replicate.
+     * <p>
+     * Return true if
+     * <ol>
+     * <li>not replicating</li>
+     * <li>replicated but no response in specified timeout</li>
+     * </ol>
+     * </p>
+     *
+     * @param readTimeout read timeout
+     * @return true if should, otherwise false
+     */
+    boolean shouldReplicate(long readTimeout) {
+        ReplicatingState replicatingState = ensureReplicatingState();
+        // 有没有在复制，或者复制中但是超时
+        return !replicatingState.isReplicating() ||
+                System.currentTimeMillis() - replicatingState.getLastReplicatedAt() >= readTimeout;
     }
 }

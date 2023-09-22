@@ -6,9 +6,13 @@ import com.daken.raft.core.node.role.RoleName;
 import com.daken.raft.core.node.role.RoleNameAndLeaderId;
 import com.daken.raft.kvstore.message.*;
 import com.daken.raft.kvstore.message.resp.GetCommandResponse;
+import com.google.protobuf.ByteString;
 import lombok.extern.slf4j.Slf4j;
-
+import com.daken.raft.kvstore.Protos;
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +34,7 @@ public class Service {
      */
     private final ConcurrentHashMap<String, CommandRequest<?>> pendingCommands = new ConcurrentHashMap<>();
 
-    private final Map<String, byte[]> map = new HashMap<>();
+    private Map<String, byte[]> map = new HashMap<>();
 
     public Service(Node node) {
         this.node = node;
@@ -40,6 +44,7 @@ public class Service {
     public void set(CommandRequest<SetCommand> commandRequest) {
         Redirect redirect = checkLeadership();
         if (redirect != null) {
+            // 回复客户端需要重定向，并发送leaderId
             commandRequest.reply(redirect);
             return;
         }
@@ -74,6 +79,36 @@ public class Service {
         return null;
     }
 
+    /**
+     * 生成数据快照
+     * @param map
+     * @param outputStream
+     * @throws IOException
+     */
+    public static void toSnapshot(Map<String, byte[]> map, OutputStream outputStream) throws IOException {
+        Protos.EntryList.Builder builder = Protos.EntryList.newBuilder();
+        map.forEach((k, v) ->
+                builder.addEntries(Protos.EntryList.Entry.newBuilder()
+                        .setKey(k)
+                        .setValue(ByteString.copyFrom(v)).build()));
+        builder.build().writeTo(outputStream);
+    }
+
+    /**
+     * 从数据快照中恢复
+     * @param inputStream
+     * @return
+     * @throws IOException
+     */
+    public static Map<String, byte[]> fromSnapshot(InputStream inputStream) throws IOException {
+        Map<String, byte[]> map = new HashMap<>();
+        Protos.EntryList entryList = Protos.EntryList.parseFrom(inputStream);
+        for (Protos.EntryList.Entry entry : entryList.getEntriesList()) {
+            map.put(entry.getKey(), entry.getValue().toByteArray());
+        }
+        return map;
+    }
+
 
     private class StateMachineImpl extends AbstractSingleThreadStateMachine {
 
@@ -89,6 +124,21 @@ public class Service {
             if (commandRequest != null) {
                 commandRequest.reply(Success.INSTANCE);
             }
+        }
+
+        @Override
+        protected void doApplySnapshot(@Nonnull InputStream input) throws IOException {
+            map = fromSnapshot(input);
+        }
+
+        @Override
+        public boolean shouldGenerateSnapshot(int firstLogIndex, int lastApplied) {
+            return lastApplied - firstLogIndex > 100;
+        }
+
+        @Override
+        public void generateSnapshot(@Nonnull OutputStream output) throws IOException {
+            toSnapshot(map, output);
         }
 
     }

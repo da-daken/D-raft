@@ -1,7 +1,9 @@
 package com.daken.raft.core.node;
 
+import com.daken.raft.core.log.FileLog;
 import com.daken.raft.core.log.Log;
 import com.daken.raft.core.log.MemoryLog;
+import com.daken.raft.core.node.store.FileNodeStore;
 import com.daken.raft.core.node.store.NodeStore;
 import com.daken.raft.core.rpc.nio.NioConnector;
 import com.google.common.base.Preconditions;
@@ -69,18 +71,18 @@ public class NodeBuilder {
         return this;
     }
 
-//    public NodeBuilder setDataDir(@Nullable String dataDirPath) {
-//        if (dataDirPath == null || dataDirPath.isEmpty()) {
-//            return this;
-//        }
-//        File dataDir = new File(dataDirPath);
-//        if (!dataDir.isDirectory() || !dataDir.exists()) {
-//            throw new IllegalArgumentException("[" + dataDirPath + "] not a directory, or not exists");
-//        }
-//        log = new FileLog(dataDir);
-//        store = new FileNodeStore(new File(dataDir, FileNodeStore.FILE_NAME));
-//        return this;
-//    }
+    public NodeBuilder setDataDir(@Nullable String dataDirPath) {
+        if (dataDirPath == null || dataDirPath.isEmpty()) {
+            return this;
+        }
+        File dataDir = new File(dataDirPath);
+        if (!dataDir.isDirectory() || !dataDir.exists()) {
+            throw new IllegalArgumentException("[" + dataDirPath + "] not a directory, or not exists");
+        }
+        log = new FileLog(dataDir, eventBus);
+        store = new FileNodeStore(new File(dataDir, FileNodeStore.FILE_NAME));
+        return this;
+    }
 
     public NodeBuilder setStandby(boolean standby) {
         this.standby = standby;

@@ -1,8 +1,10 @@
 package com.daken.raft.core.rpc.nio.handler;
 
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
+import com.daken.raft.core.rpc.message.req.InstallSnapshotRpc;
 import com.daken.raft.core.rpc.message.req.RequestVoteRpc;
 import com.daken.raft.core.rpc.message.resp.AppendEntriesResult;
+import com.daken.raft.core.rpc.message.resp.InstallSnapshotResult;
 import com.daken.raft.core.rpc.message.resp.RequestVoteResult;
 import com.google.common.eventbus.EventBus;
 import com.daken.raft.core.node.NodeId;
@@ -28,7 +30,9 @@ public abstract class AbstractHandler extends ChannelDuplexHandler {
     protected NodeId remoteId;
     // RPC 组件的 Channel
     protected Channel channel;
+    // todo 没懂
     private AppendEntriesRpc lastAppendEntriesRpc;
+    private InstallSnapshotRpc lastInstallSnapshotRpc;
 
     public AbstractHandler(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -65,6 +69,14 @@ public abstract class AbstractHandler extends ChannelDuplexHandler {
                     lastAppendEntriesRpc = null;
                 }
             }
+        } else if (msg instanceof InstallSnapshotRpc) {
+            InstallSnapshotRpc rpc = (InstallSnapshotRpc) msg;
+            eventBus.post(new InstallSnapshotRpcMessage(rpc, remoteId, channel));
+        } else if (msg instanceof InstallSnapshotResult) {
+            InstallSnapshotResult result = (InstallSnapshotResult) msg;
+            assert lastInstallSnapshotRpc != null;
+            eventBus.post(new InstallSnapshotResultMessage(result, remoteId, lastInstallSnapshotRpc));
+            lastInstallSnapshotRpc = null;
         }
     }
 
@@ -79,6 +91,8 @@ public abstract class AbstractHandler extends ChannelDuplexHandler {
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
         if (msg instanceof AppendEntriesRpc) {
             lastAppendEntriesRpc = (AppendEntriesRpc) msg;
+        } else if (msg instanceof InstallSnapshotRpc) {
+            lastInstallSnapshotRpc = (InstallSnapshotRpc) msg;
         }
         super.write(ctx, msg, promise);
     }

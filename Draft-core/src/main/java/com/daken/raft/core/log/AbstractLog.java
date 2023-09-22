@@ -4,18 +4,28 @@ import com.daken.raft.core.log.entry.Entry;
 import com.daken.raft.core.log.entry.EntryMeta;
 import com.daken.raft.core.log.entry.GeneralEntry;
 import com.daken.raft.core.log.entry.NoOpEntry;
+import com.daken.raft.core.log.event.SnapshotGenerateEvent;
 import com.daken.raft.core.log.sequence.EntrySequence;
+import com.daken.raft.core.log.sequence.GroupConfigEntryList;
+import com.daken.raft.core.log.snapshot.EntryInSnapshotException;
+import com.daken.raft.core.log.snapshot.Snapshot;
+import com.daken.raft.core.log.snapshot.SnapshotChunk;
+import com.daken.raft.core.log.snapshot.entity.builder.FileSnapshotWriter;
+import com.daken.raft.core.log.snapshot.entity.builder.NullSnapshotBuilder;
+import com.daken.raft.core.log.snapshot.entity.builder.SnapshotBuilder;
 import com.daken.raft.core.log.statemachine.StateMachine;
 import com.daken.raft.core.log.statemachine.StateMachineContext;
+import com.daken.raft.core.node.NodeEndpoint;
 import com.daken.raft.core.node.NodeId;
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
+import com.daken.raft.core.rpc.message.req.InstallSnapshotRpc;
+import com.google.common.eventbus.EventBus;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.*;
 
 /**
  * AbstractLog
@@ -31,6 +41,19 @@ public abstract class AbstractLog implements Log {
 
     private final StateMachineContext stateMachineContext = new StateMachineContextImpl();
 
+    protected Snapshot snapshot;
+
+    protected SnapshotBuilder snapshotBuilder = new NullSnapshotBuilder();
+
+    protected final EventBus eventBus;
+
+    protected GroupConfigEntryList groupConfigEntryList;
+
+    AbstractLog(EventBus eventBus) {
+        this.eventBus = eventBus;
+    }
+
+
 
     @Override
     public int getNextIndex() {
@@ -45,7 +68,7 @@ public abstract class AbstractLog implements Log {
     @Override
     public EntryMeta getLastEntryMeta() {
         if (entrySequence.isEmpty()) {
-            new EntryMeta(Entry.KIND_NO_OP, 0, 0);
+            return new EntryMeta(Entry.KIND_NO_OP, 0, 0);
         }
         return entrySequence.getLastEntry().getMeta();
     }
@@ -57,6 +80,12 @@ public abstract class AbstractLog implements Log {
             throw new IllegalArgumentException("illegal next index " + nextIndex);
         }
 
+        // 若要传的日志比快照的最后一个日志index小
+        // 抛出异常，到外层发送快照rpc
+        if (nextIndex <= snapshot.getLastIncludedIndex()) {
+            throw new EntryInSnapshotException(nextIndex);
+        }
+
         AppendEntriesRpc rpc = new AppendEntriesRpc();
         // TODO messageId 返回方可能乱序回复，生成UUID让回复方丢弃编号乱序的结果，然后依靠raft的重传保证后续处理的正确性
         rpc.setMessageId(UUID.randomUUID().toString());
@@ -65,10 +94,15 @@ public abstract class AbstractLog implements Log {
         rpc.setLeaderCommit(commitIndex);
 
         // 设置前一条日志信息
-        Entry preEntry = entrySequence.getEntry(nextIndex - 1);
-        if (preEntry != null) {
-            rpc.setPrevLogIndex(preEntry.getIndex());
-            rpc.setPrevLogTerm(preEntry.getTerm());
+        if (nextIndex == snapshot.getLastIncludedIndex() + 1) {
+            rpc.setPrevLogIndex(snapshot.getLastIncludedIndex());
+            rpc.setPrevLogTerm(snapshot.getLastIncludedTerm());
+        } else {
+            Entry preEntry = entrySequence.getEntry(nextIndex - 1);
+            if (preEntry != null) {
+                rpc.setPrevLogIndex(preEntry.getIndex());
+                rpc.setPrevLogTerm(preEntry.getTerm());
+            }
         }
         // maxEntries 标识最大读取的日志条数，假如传输全部日志条目数量，可能会网络拥堵，默认-1
         // todo 这里没懂
@@ -148,14 +182,109 @@ public abstract class AbstractLog implements Log {
         }
         log.debug("advance commit index from {} to {}", commitIndex, newCommitIndex);
         entrySequence.commit(newCommitIndex);
-
-        // TODO
-        //advanceApplyIndex();
+        // 推进 applyIndex
+        advanceApplyIndex();
     }
+
+    private void advanceApplyIndex() {
+        int lastApplied = stateMachine.getLastApplied();
+        int lastIncludedIndex = snapshot.getLastIncludedIndex();
+        if (lastApplied == 0 && lastIncludedIndex > 0) {
+            // 推进 lastApplied 时，有日志快照时必须先应用日志快照
+            assert commitIndex >= lastIncludedIndex;
+            applySnapshot(snapshot);
+            lastApplied = lastIncludedIndex;
+        }
+        for (Entry entry : entrySequence.subList(lastApplied + 1, commitIndex + 1)) {
+            applyEntry(entry);
+        }
+    }
+
+    @Override
+    public void setStateMachine(StateMachine stateMachine) {
+        this.stateMachine = stateMachine;
+    }
+
+    @Override
+    public InstallSnapshotState installSnapshot(InstallSnapshotRpc rpc) {
+        if (rpc.getLastIndex() <= snapshot.getLastIncludedIndex()) {
+            log.debug("snapshot's last included index from rpc <= current one ({} <= {}), ignore",
+                    rpc.getLastIndex(), snapshot.getLastIncludedIndex());
+            return new InstallSnapshotState(InstallSnapshotState.StateName.ILLEGAL_INSTALL_SNAPSHOT_RPC);
+        }
+
+        // 偏移量为 0，重新构建快照
+        if (rpc.getOffset() == 0) {
+            assert rpc.getLastConfig() != null;
+            snapshotBuilder.close();
+            snapshotBuilder = newSnapshotBuilder(rpc);
+        } else {
+            // 追加快照
+            snapshotBuilder.append(rpc);
+        }
+
+        // 快照数据未完成传输
+        if (!rpc.isDone()) {
+            return new InstallSnapshotState(InstallSnapshotState.StateName.INSTALLING);
+        }
+
+        // 快照全都传输完成
+        Snapshot newSnapshot = snapshotBuilder.build();
+        // 更新日志
+        replaceSnapshot(newSnapshot);
+        // 应用日志
+        applySnapshot(newSnapshot);
+        int lastIncludedIndex = snapshot.getLastIncludedIndex();
+        if (commitIndex < lastIncludedIndex) {
+            commitIndex = lastIncludedIndex;
+        }
+        return new InstallSnapshotState(InstallSnapshotState.StateName.INSTALLED, newSnapshot.getLastConfig());
+    }
+
+    @Override
+    public void generateSnapshot(int lastIncludedIndex, Set<NodeEndpoint> groupConfig) {
+        log.info("generate snapshot, last included index {}", lastIncludedIndex);
+        EntryMeta lastAppliedEntryMeta = entrySequence.getEntryMeta(lastIncludedIndex);
+        replaceSnapshot(generateSnapshot(lastAppliedEntryMeta, groupConfig));
+    }
+
+    @Override
+    public InstallSnapshotRpc createInstallSnapshotRpc(int term, NodeId selfId, int offset, int length) {
+        InstallSnapshotRpc rpc = new InstallSnapshotRpc();
+        rpc.setTerm(term);
+        rpc.setLeaderId(selfId);
+        rpc.setLastIndex(snapshot.getLastIncludedIndex());
+        rpc.setLastTerm(snapshot.getLastIncludedTerm());
+        if (offset == 0) {
+            rpc.setLastConfig(snapshot.getLastConfig());
+        }
+        rpc.setOffset(offset);
+
+        SnapshotChunk chunk = snapshot.readData(offset, length);
+        rpc.setData(chunk.getBytes());
+        rpc.setDone(chunk.isLastChunk());
+
+        rpc.setMessageId(UUID.randomUUID().toString());
+        return rpc;
+    }
+
 
     @Override
     public void close() {
         entrySequence.close();
+        stateMachine.shutdown();
+    }
+
+    private void applyEntry(Entry entry) {
+        // skip no-op entry and membership-change entry
+        if (isApplicable(entry)) {
+            Set<NodeEndpoint> lastGroup = groupConfigEntryList.getLastGroup();
+            stateMachine.applyLog(stateMachineContext, entry.getIndex(), entry.getCommandBytes(), entrySequence.getFirstLogIndex(), lastGroup);
+        }
+    }
+
+    private boolean isApplicable(Entry entry) {
+        return entry.getKind() == Entry.KIND_GENERAL;
     }
 
     // 判断传过来的是否是当前任期，是当前任期则提交
@@ -228,6 +357,22 @@ public abstract class AbstractLog implements Log {
         return term == prevLogTerm;
     }
 
+    private void applySnapshot(Snapshot snapshot) {
+        log.debug("apply snapshot, last included index {}", snapshot.getLastIncludedIndex());
+        try {
+            stateMachine.applySnapshot(snapshot);
+        } catch (IOException e) {
+            throw new LogException("failed to apply snapshot", e);
+        }
+    }
+
+
+    protected abstract void replaceSnapshot(Snapshot newSnapshot);
+
+    protected abstract SnapshotBuilder newSnapshotBuilder(InstallSnapshotRpc firstRpc);
+
+    protected abstract Snapshot generateSnapshot(EntryMeta lastAppliedEntryMeta, Set<NodeEndpoint> groupConfig);
+
     @Getter
     private static class EntrySequenceView implements Iterable<Entry> {
 
@@ -269,7 +414,10 @@ public abstract class AbstractLog implements Log {
 
     private class StateMachineContextImpl implements StateMachineContext {
 
-        // TODO 快照
+        @Override
+        public void generateSnapshot(int lastIncludedIndex) {
+            eventBus.post(new SnapshotGenerateEvent(lastIncludedIndex));
+        }
 
     }
 }

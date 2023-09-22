@@ -39,3 +39,33 @@ message AppendEntriesResult {
   int32 term = 2;
   bool success = 3;
 }
+
+
+message NodeEndpoint {
+  string id = 1;
+  string host = 2;
+  int32 port = 3;
+}
+
+
+
+message InstallSnapshotRpc {
+  int32 term = 1;
+  string leader_id = 2;
+  int32 last_index = 3;
+  int32 last_term = 4;
+  repeated NodeEndpoint last_config = 5;
+  int32 offset = 6;
+  bytes data = 7;
+  bool done = 8;
+}
+
+message InstallSnapshotResult {
+  int32 term = 1;
+}
+
+message SnapshotHeader {
+  int32 last_index = 1;
+  int32 last_term = 2;
+  repeated NodeEndpoint last_config = 3;
+}

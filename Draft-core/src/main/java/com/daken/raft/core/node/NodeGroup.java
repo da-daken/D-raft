@@ -82,7 +82,25 @@ public class NodeGroup {
         return matchIndices.get(count / 2).getMatchIndex();
     }
 
+    /**
+     * 获取集群中全部节点 point
+     * @return
+     */
+    Set<NodeEndpoint> listEndpointOfMajor() {
+        Set<NodeEndpoint> endpoints = new HashSet<>();
+        for (GroupMember member : memberMap.values()) {
+//            if (member.isMajor()) {
+            endpoints.add(member.getEndpoint());
+//            }
+        }
+        return endpoints;
+    }
 
+
+    /**
+     * 获取集群除了自己之外的全部节点 point
+     * @return
+     */
     Set<NodeEndpoint> listEndpointOfMajorExceptSelf() {
         Set<NodeEndpoint> endpoints = new HashSet<>();
         for (GroupMember member : memberMap.values()) {

@@ -1,10 +1,14 @@
 package com.daken.raft.core.node;
 
 import com.daken.raft.core.log.entry.EntryMeta;
+import com.daken.raft.core.log.event.SnapshotGenerateEvent;
+import com.daken.raft.core.log.snapshot.EntryInSnapshotException;
 import com.daken.raft.core.log.statemachine.StateMachine;
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
+import com.daken.raft.core.rpc.message.req.InstallSnapshotRpc;
 import com.daken.raft.core.rpc.message.req.RequestVoteRpc;
 import com.daken.raft.core.rpc.message.resp.AppendEntriesResult;
+import com.daken.raft.core.rpc.message.resp.InstallSnapshotResult;
 import com.daken.raft.core.rpc.message.resp.RequestVoteResult;
 import com.google.common.eventbus.Subscribe;
 import com.daken.raft.core.node.role.*;
@@ -142,6 +146,7 @@ public class NodeImpl implements Node {
      */
     @Subscribe
     public void onReceiveRequestVoteRpc(RequestVoteRpcMessage rpcMessage) {
+        log.debug("======= 收到投票请求 ========");
         // 切换线程到主处理线程
         context.getTaskExecutor().submit(() -> context.getConnector().replyRequestVote(doProcessRequestVoteRpc(rpcMessage),
                 context.getGroup().findMember(rpcMessage.getSourceNodeId()).getEndpoint()));
@@ -181,6 +186,92 @@ public class NodeImpl implements Node {
     }
 
     /**
+     * 收到开始生成快照的事件，由状态机发出该事件（不管是 leader 还是 follower 都会收到该事件）
+     */
+    @Subscribe
+    public void onGenerateSnapshot(SnapshotGenerateEvent event) {
+        context.getTaskExecutor().submit(() -> {
+            context.getLog().generateSnapshot(event.getLastIncludedIndex(), context.getGroup().listEndpointOfMajor());
+        });
+    }
+
+    /**
+     * 收到追加快照请求（由 leader 发送过来）
+     */
+    @Subscribe
+    public void onReceiveInstallSnapshotRpc(InstallSnapshotRpcMessage rpcMessage) {
+        context.getTaskExecutor().submit(
+                () -> context.getConnector().replyInstallSnapshot(doProcessInstallSnapshotRpc(rpcMessage), rpcMessage));
+    }
+
+
+    /**
+     * Receive install snapshot result. from follower
+     *
+     * @param resultMessage result message
+     */
+    @Subscribe
+    public void onReceiveInstallSnapshotResult(InstallSnapshotResultMessage resultMessage) {
+        context.getTaskExecutor().submit(
+                () -> doProcessInstallSnapshotResult(resultMessage)
+        );
+    }
+
+    private void doProcessInstallSnapshotResult(InstallSnapshotResultMessage resultMessage) {
+        InstallSnapshotResult result = resultMessage.get();
+
+        // step down if result's term is larger than current one
+        if (result.getTerm() > role.getTerm()) {
+            becomeFollower(result.getTerm(), null, null, true);
+            return;
+        }
+
+        // check role
+        if (role.getRoleName() != RoleName.LEADER) {
+            log.warn("receive install snapshot result from node {} but current node is not leader, ignore", resultMessage.getSourceNodeId());
+            return;
+        }
+
+        NodeId sourceNodeId = resultMessage.getSourceNodeId();
+        GroupMember member = context.getGroup().getMember(sourceNodeId);
+        if (member == null) {
+            log.info("unexpected install snapshot result from node {}, node maybe removed", sourceNodeId);
+            return;
+        }
+
+        InstallSnapshotRpc rpc = resultMessage.getRpc();
+        if (rpc.isDone()) {
+            // 快照复制完成，开始复制日志
+            member.advanceReplicatingState(rpc.getLastIndex());
+            doReplicateLog(member, context.getConfig().getMaxReplicationEntries());
+        } else {
+
+            // 继续传输快照
+            InstallSnapshotRpc nextRpc = context.getLog().createInstallSnapshotRpc(role.getTerm(), context.getSelfId(),
+                    rpc.getOffset() + rpc.getData().length, context.getConfig().getSnapshotDataLength());
+            context.getConnector().sendInstallSnapshot(nextRpc, member.getEndpoint());
+        }
+    }
+
+    private InstallSnapshotResult doProcessInstallSnapshotRpc(InstallSnapshotRpcMessage rpcMessage) {
+        InstallSnapshotRpc rpc = rpcMessage.getRpc();
+
+        // 对方任期小于自己，返回自己的任期号
+        if (rpc.getTerm() < role.getTerm()) {
+            return new InstallSnapshotResult(role.getTerm(), rpcMessage.getRpc().getMessageId());
+        }
+
+        // 对方任期大于自己，退化成 follower
+        if (rpc.getTerm() > role.getTerm()) {
+            becomeFollower(rpc.getTerm(), null, rpc.getLeaderId(), true);
+        }
+        // 委托日志组件处理
+        context.getLog().installSnapshot(rpc);
+        return new InstallSnapshotResult(role.getTerm(), rpcMessage.getRpc().getMessageId());
+    }
+
+
+    /**
      * 具体处理日志追加结果响应 leader 收到 follower 回复
      *
      * @param message message
@@ -214,11 +305,14 @@ public class NodeImpl implements Node {
                 // 推进 leader 的 commitIndex
                 // 用matchIndex进行比较是因为，follower的日志进度比leader小很多，有些不能进行提交，要当前日志的index过了半数才提交当前的
                 context.getLog().advanceCommitIndex(context.getGroup().getMatchIndex(), role.getTerm());
+                log.debug("advance leader commitIndex.  leader commit index: {}", context.getLog().getCommitIndex());
             }
         } else {
             // follower 追加日志失败，将 nextIndex - 1 然后，重新发送 AppendEntriesRPC
             if (!member.backOfNextIndex()) {
                 log.warn("cannot back off next index more, node {}", sourceNodeId);
+                // 日志复制结束
+                member.stopReplicating();
             }
         }
 
@@ -412,22 +506,32 @@ public class NodeImpl implements Node {
     private void doReplicateLog() {
         log.debug("replicate log");
 
+        log.debug("replicate log");
         for (GroupMember member : context.getGroup().listReplicationTarget()) {
-            doReplicateLog(member, context.getConfig().getMaxReplicationEntries());
+            // 判断是否应该复制
+            // 判断节点有没有在复制中，若在复制ing，跳过
+            // 跳过没关系是因为之后还会继续发送日志同步的信息
+            if (member.shouldReplicate(context.getConfig().getLogReplicationReadTimeout())) {
+                doReplicateLog(member, context.getConfig().getMaxReplicationEntries());
+            }
         }
     }
 
 
-    /**
-     * send appendEntriesRpc
-     * @param member
-     * @param maxEntries
-     */
     private void doReplicateLog(GroupMember member, int maxEntries) {
-        AppendEntriesRpc appendEntriesRpc = context.getLog()
-                .createAppendEntriesRpc(role.getTerm(), context.getSelfId(), member.getNextIndex(), maxEntries);
-
-        context.getConnector().sendAppendEntries(appendEntriesRpc, member.getEndpoint());
+        member.replicateNow();
+        try {
+            AppendEntriesRpc appendEntriesRpc = context.getLog()
+                    .createAppendEntriesRpc(role.getTerm(), context.getSelfId(), member.getNextIndex(), maxEntries);
+            context.getConnector().sendAppendEntries(appendEntriesRpc, member.getEndpoint());
+        } catch (EntryInSnapshotException e) {
+            // 上面抛出 nextIndex <= 快照的最后的index
+            // 执行发送快照的 rpc
+            log.debug("log entry {} in snapshot, replicate with install snapshot RPC", member.getNextIndex());
+            InstallSnapshotRpc rpc = context.getLog().createInstallSnapshotRpc(role.getTerm(), context.getSelfId(),
+                    0, context.getConfig().getSnapshotDataLength());
+            context.getConnector().sendInstallSnapshot(rpc, member.getEndpoint());
+        }
     }
 
     @Override
