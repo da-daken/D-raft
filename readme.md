@@ -3,6 +3,8 @@
 书中原来的实现 [github](https://github.com/xnnyygn/xraft)
 
 [raft 论文翻译](https://github.com/maemual/raft-zh_cn)
+
+[raft 集群选举，日志复制 演示](https://raft.github.io/raftscope/index.html)
  ### 1. node 选举
  ### 2. 日志复制
  ### 3. 日志快照
