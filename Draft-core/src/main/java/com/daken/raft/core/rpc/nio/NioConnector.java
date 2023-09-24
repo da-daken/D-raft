@@ -1,9 +1,13 @@
 package com.daken.raft.core.rpc.nio;
 
+import com.daken.raft.core.rpc.message.InstallSnapshotRpcMessage;
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
+import com.daken.raft.core.rpc.message.req.InstallSnapshotRpc;
 import com.daken.raft.core.rpc.message.req.RequestVoteRpc;
 import com.daken.raft.core.rpc.message.resp.AppendEntriesResult;
+import com.daken.raft.core.rpc.message.resp.InstallSnapshotResult;
 import com.daken.raft.core.rpc.message.resp.RequestVoteResult;
+import com.google.common.base.Preconditions;
 import com.google.common.eventbus.EventBus;
 import com.daken.raft.core.node.NodeEndpoint;
 import com.daken.raft.core.node.NodeId;
@@ -135,6 +139,22 @@ public class NioConnector implements Connector {
     public void replyAppendEntries(@Nonnull AppendEntriesResult result, @Nonnull NodeEndpoint destinationEndpoint) {
         log.debug("reply {} to node {}", result, destinationEndpoint.getId());
         executorService.execute(() -> getChannel(destinationEndpoint).writeAppendEntriesResult(result));
+    }
+
+    @Override
+    public void sendInstallSnapshot(@Nonnull InstallSnapshotRpc rpc, @Nonnull NodeEndpoint destinationEndpoint) {
+        Preconditions.checkNotNull(rpc);
+        Preconditions.checkNotNull(destinationEndpoint);
+        log.debug("send {} to node {}", rpc, destinationEndpoint.getId());
+        getChannel(destinationEndpoint).writeInstallSnapshotRpc(rpc);
+    }
+
+    @Override
+    public void replyInstallSnapshot(@Nonnull InstallSnapshotResult result, @Nonnull InstallSnapshotRpcMessage rpcMessage) {
+        Preconditions.checkNotNull(result);
+        Preconditions.checkNotNull(rpcMessage);
+        log.debug("reply {} to node {}", result, rpcMessage.getSourceNodeId());
+        rpcMessage.getChannel().writeInstallSnapshotResult(result);
     }
 
     @Override

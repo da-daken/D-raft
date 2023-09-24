@@ -4,71 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b8ad4901-2693-43aa-9518-90c289eedb67" name="Changes" comment="实现k/v数据库的Server端，作为上层服务对接核心组件">
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/AbstractLogDir.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/FileLog.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/InstallSnapshotState.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/LogGeneration.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/NormalLogDir.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/RootDir.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/entry/GroupConfigEntry.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/event/SnapshotGenerateEvent.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/sequence/GroupConfigEntryList.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/EntryInSnapshotException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/Snapshot.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/SnapshotChunk.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/EmptySnapshot.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/FileSnapshot.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/MemorySnapshot.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/builder/AbstractSnapshotBuilder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/builder/FileSnapshotBuilder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/builder/FileSnapshotWriter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/builder/MemorySnapshotBuilder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/builder/NullSnapshotBuilder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/snapshot/entity/builder/SnapshotBuilder.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/message/InstallSnapshotResultMessage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/message/InstallSnapshotRpcMessage.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/message/req/InstallSnapshotRpc.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/message/resp/InstallSnapshotResult.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/nio/ChannelException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/service/Channel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/service/NoAvailableServerException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/service/RedirectException.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/service/ServerRouter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/Protos.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/Client.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/ClientAddServerCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/ClientGetLeaderCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/ClientListServerCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/ClientRemoveServerCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/ClientSetLeaderCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/Command.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/CommandContext.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/Console.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/ConsoleLauncher.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/ExitCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/KVStoreGetCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/KVStoreSetCommand.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/client/SocketChannel.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/proto/kvstore.proto" afterDir="false" />
+    <list default="true" id="b8ad4901-2693-43aa-9518-90c289eedb67" name="Changes" comment="客户端和日志压缩">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/AbstractLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/AbstractLog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/Log.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/Log.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/MemoryLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/MemoryLog.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/statemachine/AbstractSingleThreadStateMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/statemachine/AbstractSingleThreadStateMachine.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/statemachine/StateMachine.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/statemachine/StateMachine.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/statemachine/StateMachineContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/log/statemachine/StateMachineContext.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/GroupMember.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/GroupMember.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeBuilder.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeBuilder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeEndpoint.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeEndpoint.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeGroup.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeGroup.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/Connector.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/Connector.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/nio/handler/AbstractHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/nio/handler/AbstractHandler.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/proto/core.proto" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/proto/core.proto" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Decoder.java" beforeDir="false" afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Decoder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Encoder.java" beforeDir="false" afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Encoder.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Service.java" beforeDir="false" afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Service.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -107,21 +44,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "jdk.selected.JAVA_MODULE": "1.8",
-    "last_opened_file_path": "D:/Desk/D-raft/D-raft/Raft-KVstore/src/main/java/com/daken/raft/kvstore",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;jdk.selected.JAVA_MODULE&quot;: &quot;1.8&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/Desk/D-raft/D-raft/Raft-KVstore/src/main/java/com/daken/raft/kvstore&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\Desk\D-raft\D-raft\Raft-KVstore\src\main\java\com\daken\raft\kvstore" />
@@ -187,7 +124,8 @@
       <workItem from="1694426246877" duration="1593000" />
       <workItem from="1694506146764" duration="9723000" />
       <workItem from="1694536600179" duration="2502000" />
-      <workItem from="1694573199496" duration="81924000" />
+      <workItem from="1694573199496" duration="84260000" />
+      <workItem from="1695541765479" duration="305000" />
     </task>
     <task id="LOCAL-00001" summary="raft的选举实现，RPC通信还未完成，只是内部测试">
       <created>1694508816537</created>
@@ -217,7 +155,14 @@
       <option name="project" value="LOCAL" />
       <updated>1694943600819</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="客户端和日志压缩">
+      <created>1695401283110</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1695401283110</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -251,6 +196,7 @@
     <MESSAGE value="实现集群的日志复制，持久化日志用file进行存储，还有未提交的日志在内存中" />
     <MESSAGE value="使用Netty进行节点间通信，Protobuf作为序列化协议" />
     <MESSAGE value="实现k/v数据库的Server端，作为上层服务对接核心组件" />
-    <option name="LAST_COMMIT_MESSAGE" value="实现k/v数据库的Server端，作为上层服务对接核心组件" />
+    <MESSAGE value="客户端和日志压缩" />
+    <option name="LAST_COMMIT_MESSAGE" value="客户端和日志压缩" />
   </component>
 </project>
