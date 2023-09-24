@@ -505,8 +505,6 @@ public class NodeImpl implements Node {
 
     private void doReplicateLog() {
         log.debug("replicate log");
-
-        log.debug("replicate log");
         for (GroupMember member : context.getGroup().listReplicationTarget()) {
             // 判断是否应该复制
             // 判断节点有没有在复制中，若在复制ing，跳过
@@ -528,6 +526,7 @@ public class NodeImpl implements Node {
             // 上面抛出 nextIndex <= 快照的最后的index
             // 执行发送快照的 rpc
             log.debug("log entry {} in snapshot, replicate with install snapshot RPC", member.getNextIndex());
+            // 默认一次发送 1024 字节
             InstallSnapshotRpc rpc = context.getLog().createInstallSnapshotRpc(role.getTerm(), context.getSelfId(),
                     0, context.getConfig().getSnapshotDataLength());
             context.getConnector().sendInstallSnapshot(rpc, member.getEndpoint());

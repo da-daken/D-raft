@@ -2,8 +2,10 @@ package com.daken.raft.core.rpc.nio;
 
 import com.daken.raft.core.rpc.Channel;
 import com.daken.raft.core.rpc.message.req.AppendEntriesRpc;
+import com.daken.raft.core.rpc.message.req.InstallSnapshotRpc;
 import com.daken.raft.core.rpc.message.req.RequestVoteRpc;
 import com.daken.raft.core.rpc.message.resp.AppendEntriesResult;
+import com.daken.raft.core.rpc.message.resp.InstallSnapshotResult;
 import com.daken.raft.core.rpc.message.resp.RequestVoteResult;
 import io.netty.channel.ChannelException;
 
@@ -38,6 +40,16 @@ public class NioChannel implements Channel {
 
     @Override
     public void writeAppendEntriesResult(@Nonnull AppendEntriesResult result) {
+        nettyChannel.writeAndFlush(result);
+    }
+
+    @Override
+    public void writeInstallSnapshotRpc(@Nonnull InstallSnapshotRpc rpc) {
+        nettyChannel.writeAndFlush(rpc);
+    }
+
+    @Override
+    public void writeInstallSnapshotResult(@Nonnull InstallSnapshotResult result) {
         nettyChannel.writeAndFlush(result);
     }
 

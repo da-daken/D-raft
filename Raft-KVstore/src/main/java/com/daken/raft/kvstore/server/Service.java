@@ -42,6 +42,7 @@ public class Service {
     }
 
     public void set(CommandRequest<SetCommand> commandRequest) {
+        // 确认是不是 leaderId ，不是则抛出带有 leaderId 的异常
         Redirect redirect = checkLeadership();
         if (redirect != null) {
             // 回复客户端需要重定向，并发送leaderId
@@ -87,10 +88,12 @@ public class Service {
      */
     public static void toSnapshot(Map<String, byte[]> map, OutputStream outputStream) throws IOException {
         Protos.EntryList.Builder builder = Protos.EntryList.newBuilder();
+        // 将当前 map(k/vs数据库) 中全部的 k/v 键值对取出来
         map.forEach((k, v) ->
                 builder.addEntries(Protos.EntryList.Entry.newBuilder()
                         .setKey(k)
                         .setValue(ByteString.copyFrom(v)).build()));
+        // 将全部的 k/v 键值对传到输出流中
         builder.build().writeTo(outputStream);
     }
 

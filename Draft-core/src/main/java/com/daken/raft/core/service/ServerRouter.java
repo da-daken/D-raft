@@ -19,10 +19,13 @@ public class ServerRouter {
     public Object send(Object padakenoad) {
         for (NodeId nodeId : getCandidateNodeIds()) {
             try {
+                // 这里选择的节点不是 leader 的话
+                // 会抛出一个重定向的异常，里面包含了 leaderId
                 Object result = doSend(nodeId, padakenoad);
                 this.leaderId = nodeId;
                 return result;
             } catch (RedirectException e) {
+                // 获取重定向异常，向 leaderId 发送请求
                 logger.debug("not a leader server, redirect to server {}", e.getLeaderId());
                 this.leaderId = e.getLeaderId();
                 return doSend(e.getLeaderId(), padakenoad);
