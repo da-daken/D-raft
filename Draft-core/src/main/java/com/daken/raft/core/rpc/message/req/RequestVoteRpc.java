@@ -27,6 +27,8 @@ public class RequestVoteRpc implements Serializable {
 
     /**
      * 候选人最新日志索引
+     * 该属性和下面的属性，都是为了保证
+     * 当前节点比 follower 日志新
      */
     private int lastLogIndex;
 

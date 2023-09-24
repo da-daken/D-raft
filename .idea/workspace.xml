@@ -4,12 +4,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="b8ad4901-2693-43aa-9518-90c289eedb67" name="Changes" comment="发送快照">
+    <list default="true" id="b8ad4901-2693-43aa-9518-90c289eedb67" name="Changes" comment="add notion">
+      <change afterPath="$PROJECT_DIR$/photos/appendEntryRpc.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/photos/compoments.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/photos/installSnapshotRpc.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/photos/requestVoteRpc.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/NodeImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/nio/NioChannel.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/nio/NioChannel.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/service/ServerRouter.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/service/ServerRouter.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Service.java" beforeDir="false" afterPath="$PROJECT_DIR$/Raft-KVstore/src/main/java/com/daken/raft/kvstore/server/Service.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/message/req/RequestVoteRpc.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/rpc/message/req/RequestVoteRpc.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -70,6 +72,9 @@
       <recent name="D:\Desk\D-raft\D-raft\Draft-core\src\main\proto" />
       <recent name="D:\Desk\D-raft\D-raft\Draft-core\src\main\resources" />
     </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\Desk\D-raft\D-raft\photos" />
+    </key>
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.daken.raft.core.log.snapshot" />
       <recent name="com.daken.raft.core.log.event" />
@@ -129,7 +134,7 @@
       <workItem from="1694506146764" duration="9723000" />
       <workItem from="1694536600179" duration="2502000" />
       <workItem from="1694573199496" duration="84260000" />
-      <workItem from="1695541765479" duration="4851000" />
+      <workItem from="1695541765479" duration="10619000" />
     </task>
     <task id="LOCAL-00001" summary="raft的选举实现，RPC通信还未完成，只是内部测试">
       <created>1694508816537</created>
@@ -173,7 +178,14 @@
       <option name="project" value="LOCAL" />
       <updated>1695542195844</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="add notion">
+      <created>1695547706727</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1695547706727</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -209,6 +221,7 @@
     <MESSAGE value="实现k/v数据库的Server端，作为上层服务对接核心组件" />
     <MESSAGE value="客户端和日志压缩" />
     <MESSAGE value="发送快照" />
-    <option name="LAST_COMMIT_MESSAGE" value="发送快照" />
+    <MESSAGE value="add notion" />
+    <option name="LAST_COMMIT_MESSAGE" value="add notion" />
   </component>
 </project>
