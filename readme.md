@@ -5,6 +5,8 @@
 [raft 论文翻译](https://github.com/maemual/raft-zh_cn)
 
 [raft 集群选举，日志复制 演示](https://raft.github.io/raftscope/index.html)
+
+[raft 笔记](https://zhuanlan.zhihu.com/p/588995169)
  ### 1. node 选举
  ### 2. 日志复制
  ### 3. 日志快照

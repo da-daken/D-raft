@@ -6,6 +6,8 @@
   <component name="ChangeListManager">
     <list default="true" id="b8ad4901-2693-43aa-9518-90c289eedb67" name="Changes" comment="update readme">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/config/NodeConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/Draft-core/src/main/java/com/daken/raft/core/node/config/NodeConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/readme.md" beforeDir="false" afterPath="$PROJECT_DIR$/readme.md" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -28,13 +30,6 @@
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="MavenImportPreferences">
-    <option name="importingSettings">
-      <MavenImportingSettings>
-        <option name="workspaceImportEnabled" value="true" />
-      </MavenImportingSettings>
-    </option>
-  </component>
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="ProjectErrors" />
   </component>
@@ -51,7 +46,7 @@
     &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
     &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
     &quot;jdk.selected.JAVA_MODULE&quot;: &quot;1.8&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Desk/D-raft/D-raft/Raft-KVstore/src/main/java/com/daken/raft/kvstore&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/daken/Desktop/D-raft&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -129,6 +124,13 @@
       <workItem from="1694536600179" duration="2502000" />
       <workItem from="1694573199496" duration="84260000" />
       <workItem from="1695541765479" duration="11170000" />
+      <workItem from="1695703793321" duration="2017000" />
+      <workItem from="1696552538210" duration="162000" />
+      <workItem from="1696766812873" duration="157000" />
+      <workItem from="1696829494353" duration="718000" />
+      <workItem from="1696830565837" duration="746000" />
+      <workItem from="1697592250481" duration="453000" />
+      <workItem from="1697592735575" duration="1334000" />
     </task>
     <task id="LOCAL-00001" summary="raft的选举实现，RPC通信还未完成，只是内部测试">
       <created>1694508816537</created>

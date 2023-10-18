@@ -12,12 +12,12 @@ import lombok.Setter;
 public class NodeConfig {
 
     /**
-     * Minimum election timeout
+     * Minimum election timeout（为了测试方便设为3秒）
      */
     private int minElectionTimeout = 3000;
-
+    // raft论文中的选举超时时间是 150ms - 300ms
     /**
-     * Maximum election timeout
+     * Maximum election timeout（为了测试方便设为4秒）
      */
     private int maxElectionTimeout = 4000;
 
